@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.pytest_cache/
+
+# Environment & Credentials
+.env
+*.sqlite
+token.json
+client_secrets.json
+
+# Project Output & Temporary
+data/*.sqlite
+output/videos/*
+output/reports/*
+output/metadata/*
+temp/*
+!output/videos/.gitkeep
+!output/reports/.gitkeep
+!output/metadata/.gitkeep
+!temp/.gitkeep
+
+# IDE
+.vscode/
+.idea/
