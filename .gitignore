@@ -13,7 +13,7 @@ ENV/
 .env
 *.sqlite
 token.json
-client_secrets.json
+client_secret.json
 
 # Project Output & Temporary
 data/*.sqlite
