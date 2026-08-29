@@ -44,6 +44,35 @@ FFMPEG SYNCHRONIZED VIDEO ASSEMBLY (1080x1920 Vertical MP4)
 
 ---
 
+## Automated Publishing & YouTube Upload (Step 12)
+
+The pipeline concludes with **Step 12: YouTube Upload**, uploading generated Shorts to your YouTube channel via the YouTube Data API v3. By default, videos are uploaded with **Private** visibility (`privacy_status="private"`), allowing you to manually review and publish each video from YouTube Studio.
+
+### OAuth Environment Variables & Secrets
+Configure the following secrets in `.env` (for local runs) or GitHub Repository Secrets (for CI/CD):
+- `YT_CLIENT_ID`: OAuth 2.0 Client ID
+- `YT_CLIENT_SECRET`: OAuth 2.0 Client Secret
+- `YT_REFRESH_TOKEN`: OAuth 2.0 Refresh Token
+- `YT_CATEGORY_ID`: (Optional, default `22`)
+- `YT_PRIVACY_STATUS`: (Optional, default `private` for safety and manual review)
+
+
+### Dry-Run Mode (`TEST_MODE`)
+To test the pipeline end-to-end without uploading to YouTube, set `TEST_MODE=true`:
+```bash
+TEST_MODE=true python main.py
+```
+In `TEST_MODE`, the pipeline simulates YouTube upload, logging formatted titles, tags, and descriptions without sending network requests.
+
+### GitHub Actions Automation Workflow
+The repository includes `.github/workflows/publish_short.yml`:
+- Triggered automatically twice daily on a schedule (`0 12,22 * * *`) and manually via `workflow_dispatch`.
+- Sets up Python 3.10 and system `ffmpeg`.
+- Authenticates securely via GitHub Repository Secrets (`GEMINI_API_KEY`, `PEXELS_API_KEY`, `PIXABAY_API_KEY`, `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `YT_REFRESH_TOKEN`).
+- Runs `python main.py` and uploads execution reports and metadata JSON files as workflow build artifacts.
+
+---
+
 ## Configuration
 
 Subtitles and karaoke styling are fully configurable in `config/settings.py` (or `.env`):

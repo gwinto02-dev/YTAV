@@ -27,10 +27,19 @@ PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "").strip()
 PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY", "").strip()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 
+# YouTube API configuration
+YT_CLIENT_ID = os.getenv("YT_CLIENT_ID", "").strip()
+YT_CLIENT_SECRET = os.getenv("YT_CLIENT_SECRET", "").strip()
+YT_REFRESH_TOKEN = os.getenv("YT_REFRESH_TOKEN", "").strip()
+YT_CATEGORY_ID = os.getenv("YT_CATEGORY_ID", "22").strip()
+YT_PRIVACY_STATUS = os.getenv("YT_PRIVACY_STATUS", "private").strip()
+
 # Pipeline configuration
-TEST_MODE = os.getenv("TEST_MODE", "false").lower() == "true"
+TEST_MODE = os.getenv("TEST_MODE", "false").strip().lower() in ("true", "1", "yes")
 VOICE_NAME = os.getenv("VOICE_NAME", "en-US-ChristopherNeural")
+
 COOLDOWN_DAYS = int(os.getenv("COOLDOWN_DAYS", "14"))
+
 
 # Video specifications
 VIDEO_WIDTH = 1080

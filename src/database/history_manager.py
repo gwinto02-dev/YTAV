@@ -72,11 +72,22 @@ class HistoryManager:
                 status TEXT NOT NULL,
                 error_reason TEXT,
                 output_video_path TEXT,
+                youtube_video_id TEXT,
+                youtube_url TEXT,
                 run_metadata TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
             """)
+
+            cursor.execute("PRAGMA table_info(pipeline_runs)")
+            cols = [r["name"] for r in cursor.fetchall()]
+            if "youtube_video_id" not in cols:
+                cursor.execute("ALTER TABLE pipeline_runs ADD COLUMN youtube_video_id TEXT")
+            if "youtube_url" not in cols:
+                cursor.execute("ALTER TABLE pipeline_runs ADD COLUMN youtube_url TEXT")
+
             conn.commit()
+
 
     def is_topic_on_cooldown(self, topic_name: str, cooldown_days: int = 14) -> bool:
         """
@@ -180,7 +191,9 @@ class HistoryManager:
         status: str,
         error_reason: Optional[str] = None,
         video_path: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        youtube_video_id: Optional[str] = None,
+        youtube_url: Optional[str] = None
     ) -> int:
         """Record pipeline execution status and summary."""
         meta_str = json.dumps(metadata) if metadata else None
@@ -188,13 +201,17 @@ class HistoryManager:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO pipeline_runs (topic_name, status, error_reason, output_video_path, run_metadata)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO pipeline_runs (
+                    topic_name, status, error_reason, output_video_path,
+                    youtube_video_id, youtube_url, run_metadata
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                (topic_name, status, error_reason, video_path, meta_str)
+                (topic_name, status, error_reason, video_path, youtube_video_id, youtube_url, meta_str)
             )
             conn.commit()
             return cursor.lastrowid
+
 
     def get_recent_topics(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Get list of recently used topics."""

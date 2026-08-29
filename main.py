@@ -17,13 +17,15 @@ from src.video.video_validator import VideoValidator
 from src.qa.content_qa import ContentQA
 from src.qa.sync_qa import SynchronizationQA
 from src.qa.pipeline_integrity import PipelineIntegrity
+from src.upload.youtube_uploader import YouTubeUploader
 from src.utils.logger import logger, log_step
 
 def run_pipeline():
-    """Execute full 11-step YouTube Shorts automation pipeline driven by Master Timeline."""
+    """Execute full 12-step YouTube Shorts automation pipeline driven by Master Timeline."""
     print("=" * 60)
     print("AMAZING FACTS & MYSTERIES SHORTS AUTOMATION (MASTER TIMELINE ENGINE)")
     print("=" * 60)
+
 
     # Initialize persistence and QA systems
     history_mgr = HistoryManager(DB_PATH)
@@ -155,6 +157,35 @@ def run_pipeline():
     )
     print(f" -> Topic Usage Recorded in Database (ID: {topic_id})")
 
+    # Step 12: Uploading to YouTube
+    log_step(12, "Uploading to YouTube")
+    uploader = YouTubeUploader()
+
+    sources_text = "\n".join([
+        f"- {s['title']}: {s['url']}" if isinstance(s, dict) else f"- {s}"
+        for s in research_data.get("sources", [])
+    ])
+    description = (
+        f"{script_data.get('hook', '')}\n\n"
+        f"{script_data.get('script_text', '')}\n\n"
+        f"Sources & Grounding:\n{sources_text}\n\n"
+        f"#Shorts #{category.replace(' ', '')} #{topic_name.replace(' ', '')} #Facts #Science #DidYouKnow"
+    )
+    tags = [category, topic_name, "Shorts", "Facts", "Did You Know", "Science", "Mysteries"]
+
+    upload_result = uploader.upload_video(
+        video_path=video_path,
+        title=selected_title,
+        description=description,
+        tags=tags,
+        privacy_status="private"
+    )
+
+    yt_video_id = upload_result.get("video_id", "")
+    yt_url = upload_result.get("url", "")
+    yt_status = upload_result.get("status", "")
+    print(f" -> YouTube Upload Status: {yt_status} | URL: {yt_url}")
+
     # Save Metadata and Pipeline Report
     run_report_data = {
         "topic": topic_name,
@@ -165,6 +196,9 @@ def run_pipeline():
         "video_duration": vid_info["duration"],
         "sync_difference": sync_metrics["difference"],
         "video_path": str(video_path.resolve()),
+        "youtube_video_id": yt_video_id,
+        "youtube_url": yt_url,
+        "youtube_upload_status": yt_status,
         "sources": research_data["sources"],
         "scenes": sourced_scenes,
         "word_count_aligned": len(words),
@@ -172,16 +206,25 @@ def run_pipeline():
         "provider_health": media_mgr.health_manager.health_state
     }
     meta_file, report_file = integrity.save_run_report(run_report_data, status="SUCCESS")
-    history_mgr.record_pipeline_run(topic_name, "SUCCESS", video_path=str(video_path.resolve()))
+    history_mgr.record_pipeline_run(
+        topic_name,
+        "SUCCESS",
+        video_path=str(video_path.resolve()),
+        youtube_video_id=yt_video_id,
+        youtube_url=yt_url,
+        metadata=run_report_data
+    )
 
     print("\n" + "=" * 60)
     print("SUCCESS — SYNCHRONIZED PIPELINE COMPLETED")
     print(f"Output Video:    {video_path.resolve()}")
+    print(f"YouTube URL:     {yt_url} ({yt_status})")
     print(f"Metadata JSON:   {meta_file.resolve()}")
     print(f"Report MD:       {report_file.resolve()}")
     print(f"Narration:       {duration:.2f}s | Video: {vid_info['duration']:.2f}s | Diff: {sync_metrics['difference']:.2f}s")
     print(f"Aligned Words:   {len(words)} | Caption Groups: {len(caption_groups)}")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     try:
