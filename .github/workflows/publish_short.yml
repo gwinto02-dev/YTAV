@@ -2,8 +2,9 @@ name: Publish YouTube Short
 
 on:
   schedule:
-    # Run twice daily at 12:00 UTC and 22:00 UTC
-    - cron: '0 12,22 * * *'
+    # Run 4x daily, spaced 6 hours apart: 06:00, 12:00, 18:00, 00:00 PKT
+    # (01:00, 07:00, 13:00, 19:00 UTC) -> morning, afternoon, evening, night
+    - cron: '0 1,7,13,19 * * *'
   workflow_dispatch:
 
 jobs:
